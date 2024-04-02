@@ -1,4 +1,4 @@
-version = "2.3.0"
+version = "2.3.1"
 
 project.extra["PluginName"] = "Lucid Gear Swapper"
 project.extra["PluginDescription"] = "Set-up up an unlimited amount of custom gear swaps with customizable hotkeys or trigger them via weapon equip"

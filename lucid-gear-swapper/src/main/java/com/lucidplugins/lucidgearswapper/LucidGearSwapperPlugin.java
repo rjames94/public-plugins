@@ -75,6 +75,8 @@ public class LucidGearSwapperPlugin extends Plugin implements KeyListener
 
     private int gearSwapSelected = -1;
 
+    private int lastSwapSelected = -1;
+
     private List<Integer> lastItemsEquipped = new ArrayList<>();
 
     private List<String> lastEquipmentList = new ArrayList<>();
@@ -182,16 +184,13 @@ public class LucidGearSwapperPlugin extends Plugin implements KeyListener
                 {
                     swap(gearSwapSelected, false);
                     gearSwapState = GearSwapState.FINISHED;
+                    lastSwapSelected = gearSwapSelected;
                 }
                 else
                 {
                     swap(gearSwapSelected, true);
                     gearSwapState = GearSwapState.TICK_2;
-                }
-
-                if (shouldActivateSpec())
-                {
-                    CombatUtils.toggleSpec();
+                    lastSwapSelected = -1;
                 }
             }
             else if (gearSwapState == GearSwapState.TICK_2)
@@ -200,6 +199,14 @@ public class LucidGearSwapperPlugin extends Plugin implements KeyListener
                 gearSwapState = GearSwapState.FINISHED;
             }
         }
+
+
+        if (shouldActivateSpec())
+        {
+            CombatUtils.toggleSpec();
+        }
+
+        lastSwapSelected = -1;
     }
     private void getEquipmentChanges()
     {
@@ -352,6 +359,7 @@ public class LucidGearSwapperPlugin extends Plugin implements KeyListener
                     swap(0, true);
                     gearSwapState = GearSwapState.TICK_2;
                 }
+                lastSwapSelected = 0;
             });
         }
 
@@ -374,6 +382,7 @@ public class LucidGearSwapperPlugin extends Plugin implements KeyListener
                     swap(1, true);
                     gearSwapState = GearSwapState.TICK_2;
                 }
+                lastSwapSelected = 1;
             });
         }
 
@@ -396,6 +405,7 @@ public class LucidGearSwapperPlugin extends Plugin implements KeyListener
                     swap(2, true);
                     gearSwapState = GearSwapState.TICK_2;
                 }
+                lastSwapSelected = 2;
             });
         }
 
@@ -418,6 +428,7 @@ public class LucidGearSwapperPlugin extends Plugin implements KeyListener
                     swap(3, true);
                     gearSwapState = GearSwapState.TICK_2;
                 }
+                lastSwapSelected = 3;
             });
         }
 
@@ -440,6 +451,7 @@ public class LucidGearSwapperPlugin extends Plugin implements KeyListener
                     swap(4, true);
                     gearSwapState = GearSwapState.TICK_2;
                 }
+                lastSwapSelected = 4;
             });
         }
 
@@ -462,6 +474,7 @@ public class LucidGearSwapperPlugin extends Plugin implements KeyListener
                     swap(5, true);
                     gearSwapState = GearSwapState.TICK_2;
                 }
+                lastSwapSelected = 5;
             });
         }
 
@@ -673,7 +686,7 @@ public class LucidGearSwapperPlugin extends Plugin implements KeyListener
 
     private boolean shouldActivateSpec()
     {
-        switch (gearSwapSelected)
+        switch (lastSwapSelected)
         {
             case 0:
                 return config.activateSpec1() && (CombatUtils.getSpecEnergy(client) >= config.specThreshold1());
