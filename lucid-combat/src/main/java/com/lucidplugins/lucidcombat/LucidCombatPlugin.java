@@ -108,7 +108,7 @@ public class LucidCombatPlugin extends Plugin implements KeyListener
 
     private List<NPC> npcsKilled = new ArrayList<>();
 
-    private final List<String> prayerRestoreNames = List.of("Prayer potion", "Super restore", "Sanfew serum", "Blighted super restore");
+    private final List<String> prayerRestoreNames = List.of("Prayer potion", "Super restore", "Sanfew serum", "Blighted super restore", "Moonlight potion");
 
     private final Predicate<SlottedItem> foodFilterNoBlacklistItems = (item) -> {
         final ItemComposition itemComposition = client.getItemDefinition(item.getItem().getId());
