@@ -16,6 +16,10 @@ public class EquipmentUtils
         return Equipment.fromSlot(EquipmentInventorySlot.WEAPON);
     }
 
+    public static Item getShieldSlotItem()
+    {
+        return Equipment.fromSlot(EquipmentInventorySlot.SHIELD);
+    }
     public static boolean contains(int... ids)
     {
         return Equipment.contains(ids);

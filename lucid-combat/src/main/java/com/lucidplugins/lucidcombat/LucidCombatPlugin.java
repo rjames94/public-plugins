@@ -79,6 +79,9 @@ public class LucidCombatPlugin extends Plugin implements KeyListener
     private int lastFinisherAttempt = 0;
 
     private int nonSpecWeaponId = -1;
+    private int offhandWeaponID = -1;
+
+    private boolean isSpeccing = false;
 
     @Getter
     private Actor lastTarget = null;
@@ -273,6 +276,11 @@ public class LucidCombatPlugin extends Plugin implements KeyListener
             {
                 nonSpecWeaponId = EquipmentUtils.getWepSlotItem().getId();
             }
+
+            if (EquipmentUtils.getShieldSlotItem() != null)
+            {
+                offhandWeaponID = EquipmentUtils.getShieldSlotItem().getId();
+            }
         }
     }
 
@@ -325,7 +333,7 @@ public class LucidCombatPlugin extends Plugin implements KeyListener
     @Subscribe
     private void onClientTick(ClientTick tick)
     {
-        if (client.getLocalPlayer().getInteracting() != null && client.getLocalPlayer().getInteracting().getHealthRatio() == 0)
+        if (client.getLocalPlayer().getInteracting() != null && client.getLocalPlayer().getInteracting().isDead())
         {
             if (client.getLocalPlayer().getInteracting() instanceof NPC && !npcsKilled.contains((NPC)client.getLocalPlayer().getInteracting()))
             {
@@ -337,7 +345,7 @@ public class LucidCombatPlugin extends Plugin implements KeyListener
     @Subscribe
     private void onGameTick(GameTick tick)
     {
-        expectedLootLocations.entrySet().removeIf(i -> client.getTickCount() > i.getValue() + 100);
+        expectedLootLocations.entrySet().removeIf(i -> client.getTickCount() > i.getValue() + 500);
 
         if (client.getGameState() != GameState.LOGGED_IN || BankUtils.isOpen())
         {
@@ -506,12 +514,45 @@ public class LucidCombatPlugin extends Plugin implements KeyListener
             return false;
         }
 
-        if (nonSpecWeaponId != -1 && !canSpec())
+        if (config.specIfAutocombat() && !autoCombatRunning)
+        {
+            return false;
+        }
+
+        if (!isSpeccing && canStartSpeccing())
+        {
+            isSpeccing = true;
+        }
+        else if (isSpeccing && !canSpec())
+        {
+            isSpeccing = false;
+        }
+
+        if (nonSpecWeaponId != -1 && !isSpeccing)
         {
             lastTarget = client.getLocalPlayer().getInteracting();
             InventoryUtils.itemInteract(nonSpecWeaponId, "Wield");
+
+            if (offhandWeaponID != -1)
+            {
+                if (InventoryUtils.itemHasAction(client, offhandWeaponID, "Wield"))
+                {
+                    InventoryUtils.itemInteract(offhandWeaponID, "Wield");
+                }
+                else if (InventoryUtils.itemHasAction(client, offhandWeaponID, "Wear"))
+                {
+                    InventoryUtils.itemInteract(offhandWeaponID, "Wear");
+                }
+            }
+
             nonSpecWeaponId = -1;
+            offhandWeaponID = -1;
             return true;
+        }
+
+        if (!isSpeccing)
+        {
+            return false;
         }
 
         boolean equippedItem = false;
@@ -525,6 +566,11 @@ public class LucidCombatPlugin extends Plugin implements KeyListener
                     if (EquipmentUtils.getWepSlotItem() != null)
                     {
                         nonSpecWeaponId = EquipmentUtils.getWepSlotItem().getId();
+                    }
+
+                    if (EquipmentUtils.getShieldSlotItem() != null)
+                    {
+                        offhandWeaponID = EquipmentUtils.getShieldSlotItem().getId();
                     }
 
                     lastTarget = client.getLocalPlayer().getInteracting();
@@ -545,7 +591,7 @@ public class LucidCombatPlugin extends Plugin implements KeyListener
             }
         }
 
-        if (equippedItem && canSpec() && !CombatUtils.isSpecEnabled())
+        if (equippedItem && isSpeccing && !CombatUtils.isSpecEnabled())
         {
             CombatUtils.toggleSpec();
             return true;
@@ -554,10 +600,16 @@ public class LucidCombatPlugin extends Plugin implements KeyListener
         return false;
     }
 
-    private boolean canSpec()
+    private boolean canStartSpeccing()
     {
         final int spec = CombatUtils.getSpecEnergy(client);
         return spec >= config.minSpec() && spec >= config.specNeeded();
+    }
+
+    private boolean canSpec()
+    {
+        final int spec = CombatUtils.getSpecEnergy(client);
+        return spec >= config.specNeeded();
     }
 
     private boolean handleLooting()
@@ -1129,6 +1181,11 @@ public class LucidCombatPlugin extends Plugin implements KeyListener
 
     private boolean isNpcEligible(NPC npc)
     {
+        if (npc == null)
+        {
+            return false;
+        }
+
         if (npc.getComposition().getActions() == null)
         {
             return false;
