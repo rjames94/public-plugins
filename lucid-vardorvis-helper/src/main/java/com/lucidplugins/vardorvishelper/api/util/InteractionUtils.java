@@ -175,7 +175,7 @@ public class InteractionUtils
 
     public static boolean isNpcInMeleeDistance(NPC target)
     {
-        return approxDistanceTo(target.getWorldArea().getCenter(), Static.getClient().getLocalPlayer().getWorldLocation()) == (target.getWorldArea().getWidth() / 2) + 1;
+        return target.getWorldArea().isInMeleeDistance(Static.getClient().getLocalPlayer().getWorldLocation());
     }
 
     public static int approxDistanceTo(WorldPoint point1, WorldPoint point2)
